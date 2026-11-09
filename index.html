@@ -1,0 +1,618 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <link rel="manifest" href="manifest.json">
+  <meta name="theme-color" content="#000">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <title>Sistema FF - Premium</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; -webkit-tap-highlight-color: transparent; }
+        body { background-color: #000; color: #fff; display: flex; justify-content: center; align-items: center; min-height: 100vh; min-height: 100dvh; overflow: hidden; }
+        
+        .app-container {
+            width: 100%; max-width: 420px; height: 100vh; height: 100dvh; max-height: 900px;
+            background-color: #000; position: relative; display: flex;
+            flex-direction: column; border-radius: 20px; box-shadow: 0 0 40px rgba(255,255,255,0.05);
+            overflow: hidden;
+        }
+
+        /* --- TELA DE LOGIN (PRETO E BRANCO COM TEXTO) --- */
+        #login-screen {
+            position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+            background-color: #000; display: flex; flex-direction: column;
+            justify-content: center; align-items: center; padding: 30px; z-index: 100; transition: 0.4s;
+        }
+        
+        .login-box { 
+            width: 100%; background-color: #000; 
+            border: 2px solid #fff; border-radius: 20px; 
+            padding: 40px 25px; text-align: center;
+            box-shadow: 0 0 20px rgba(255, 255, 255, 0.1);
+        }
+
+        .login-brand-text {
+            display: block;
+            font-size: clamp(40px, 12vw, 60px);
+            font-weight: 900;
+            color: #fff;
+            text-transform: uppercase;
+            letter-spacing: 4px;
+            margin: 0 auto 30px;
+            text-shadow: 0 0 15px rgba(255, 255, 255, 0.8), 0 0 30px rgba(255, 255, 255, 0.4);
+        }
+
+        .login-box h2 { color: #fff; margin-bottom: 25px; font-size: 32px; font-weight: 900; letter-spacing: 2px; }
+
+        .input-group { margin-bottom: 20px; text-align: left; }
+        .input-group input { 
+            width: 100%; padding: 18px; background-color: #111; 
+            border: 1px solid #333; border-radius: 12px; color: #fff; 
+            font-size: 16px; outline: none; transition: 0.3s; text-align: center;
+        }
+        .input-group input:focus { border-color: #fff; box-shadow: 0 0 10px rgba(255, 255, 255, 0.2); }
+
+        .btn-login { 
+            width: 100%; padding: 18px; background-color: #fff; 
+            color: #000; border: none; border-radius: 12px; 
+            font-size: 16px; font-weight: bold; cursor: pointer; 
+            transition: 0.2s; text-transform: uppercase; letter-spacing: 1px;
+        }
+        .btn-login:active { transform: scale(0.97); }
+        .error-msg { color: #fff; font-size: 13px; margin-top: 15px; display: none; }
+
+        /* --- TELAS DO PAINEL --- */
+        .content-area { flex: 1; overflow-y: auto; padding: 20px 20px 90px 20px; display: none; }
+        .content-area.active { display: block; }
+
+        #tab-funcoes { padding-top: 60px; }
+        #tab-extra { padding-top: 90px; }
+
+        .section-title { color: #888; font-size: 12px; font-weight: 700; letter-spacing: 2px; text-transform: uppercase; margin-bottom: 15px; margin-top: 10px; }
+        .status-card { background-color: #111; border: 1px solid #333; border-radius: 20px; padding: 20px; margin-bottom: 25px; display: flex; flex-direction: column; gap: 20px; }
+        .info-row { display: flex; align-items: center; gap: 15px; }
+        .info-icon { width: 24px; height: 24px; fill: #888; }
+        .info-texts { flex: 1; }
+        .info-label { color: #888; font-size: 13px; margin-bottom: 3px; }
+        .info-value { color: #fff; font-size: 15px; font-weight: 600; word-break: break-all; }
+        .info-value.compatible { color: #fff; font-weight: 800; }
+        .eye-btn { background-color: #222; border: none; width: 40px; height: 40px; border-radius: 50%; display: flex; justify-content: center; align-items: center; cursor: pointer; }
+        .eye-btn svg { width: 20px; height: 20px; fill: #fff; }
+        .btn-secondary { width: 100%; padding: 14px; background-color: #111; border: 1px solid #333; color: #fff; border-radius: 12px; font-size: 15px; font-weight: 600; cursor: pointer; margin-bottom: 12px; transition: 0.2s; }
+        .btn-secondary:active { background-color: #222; }
+
+        .bottom-nav { position: absolute; bottom: 0; left: 0; width: 100%; height: 70px; background-color: #0a0a0a; border-top: 1px solid #333; border-radius: 20px 20px 0 0; display: flex; justify-content: space-around; align-items: center; padding: 0 10px; padding-bottom: env(safe-area-inset-bottom); z-index: 10; }
+        .nav-item { display: flex; flex-direction: column; align-items: center; gap: 5px; color: #666; cursor: pointer; transition: 0.3s; position: relative; flex: 1; }
+        .nav-item svg { width: 24px; height: 24px; fill: currentColor; }
+        .nav-item span { font-size: 11px; font-weight: 600; }
+        .nav-item.active { color: #fff; }
+        .nav-item.active::before { content: ''; position: absolute; top: -15px; width: 20px; height: 4px; background-color: #fff; border-radius: 10px; box-shadow: 0 0 10px #fff; }
+
+        .functions-list { display: flex; flex-direction: column; gap: 8px; margin-bottom: 5px; }
+        .function-item { background-color: #111; border: 1px solid #333; border-radius: 12px; padding: 10px 12px; display: flex; align-items: center; justify-content: space-between; }
+        .function-item.highlight { border-color: #fff; box-shadow: 0 0 10px rgba(255, 255, 255, 0.1); }
+        .item-left { display: flex; align-items: center; gap: 12px; }
+        .icon-box { width: 36px; height: 36px; background-color: #1a1a1a; border-radius: 9px; display: flex; justify-content: center; align-items: center; border: 1px solid #444; }
+        .icon-box svg { width: 18px; height: 18px; fill: #fff; }
+        .text-content h3 { font-size: 15px; margin-bottom: 2px; }
+        .text-content p { font-size: 11px; color: #888; }
+
+        .switch { position: relative; display: inline-block; width: 42px; height: 22px; }
+        .switch input { opacity: 0; width: 0; height: 0; }
+        .slider { position: absolute; cursor: pointer; top: 0; left: 0; right: 0; bottom: 0; background-color: #444; transition: .4s; border-radius: 34px; }
+        .slider:before { position: absolute; content: ""; height: 16px; width: 16px; left: 3px; bottom: 3px; background-color: #fff; transition: .4s; border-radius: 50%; }
+        input:checked + .slider { background-color: #fff; }
+        input:checked + .slider:before { background-color: #000; transform: translateX(20px); }
+
+        .btn-open { width: 100%; background: #fff; color: #000; border: none; padding: 16px; border-radius: 12px; font-size: 16px; font-weight: 800; text-transform: uppercase; cursor: pointer; margin-bottom: 10px; box-shadow: 0 4px 15px rgba(255, 255, 255, 0.1); }
+        .btn-open.max { background: #111; color: #fff; border: 1px solid #444; }
+
+        #loading-overlay { position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background-color: rgba(0, 0, 0, 0.95); display: none; flex-direction: column; justify-content: center; align-items: center; z-index: 9999; }
+        .loader { border: 5px solid #333; border-top: 5px solid #fff; border-radius: 50%; width: 60px; height: 60px; animation: spin 1s linear infinite; margin-bottom: 20px; }
+        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+    </style>
+</head>
+<body> 
+
+    <div id="loading-overlay">
+        <div class="loader"></div>
+        <div style="font-size: 18px; font-weight: bold; letter-spacing: 2px;">CARREGANDO...</div>
+    </div>
+
+    <div class="app-container">
+        
+        <div id="login-screen">
+            <div class="login-box">
+                <div class="login-brand-text">Thzffx</div>
+                <h2>LOGIN</h2>
+                <div class="input-group">
+                    <input type="password" id="password-input" placeholder="Digite a senha">
+                </div>
+                <button class="btn-login" onclick="fazerLogin()">ENTRAR NO PAINEL</button>
+                <div class="error-msg" id="error-msg">Senha incorreta. Tente novamente.</div>
+            </div>
+        </div>
+
+        <div id="tab-status" class="content-area">
+            <div class="section-title">Licença</div>
+            <div class="status-card">
+                <div class="info-row">
+                    <svg class="info-icon" viewBox="0 0 24 24"><path d="M12.65 10C11.83 7.67 9.61 6 7 6c-3.31 0-6 2.69-6 6 0 3.31 2.69 6 6 6 2.61 0 4.83-1.67 5.65-4H17v4h4v-4h2v-4H12.65zM7 14c-1.1 0-2-.9-2-2s.9-2 2-2 2 .9 2 2-.9 2-2 2z"/></svg>
+                    <div class="info-texts"><div class="info-label">Key</div><div class="info-value" id="display-key">••••••••••••</div></div>
+                    <button class="eye-btn" onclick="toggleKey()"><svg id="eye-icon" viewBox="0 0 24 24"><path d="M12 4.5C7 4.5 2.73 7.61 1 12c1.73 4.39 6 7.5 11 7.5s9.27-3.11 11-7.5c-1.73-4.39-6-7.5-11-7.5zM12 17c-2.76 0-5-2.24-5-5s2.24-5 5-5 5 2.24 5 5-2.24 5-5 5zm0-8c-1.66 0-3 1.34-3 3s1.34 3 3 3 3-1.34 3-3-1.34-3-3-3z"/></svg></button>
+                </div>
+                <div class="info-row">
+                    <svg class="info-icon" viewBox="0 0 24 24"><path d="M19 3h-1V1h-2v2H8V1H6v2H5c-1.11 0-1.99.9-1.99 2L3 19c0 1.1.89 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm0 16H5V8h14v11zM7 10h5v5H7z"/></svg>
+                    <div class="info-texts"><div class="info-label">Validade</div><div class="info-value" id="validade-data">2027-02-03T01:01:44.128</div></div>
+                </div>
+                <div class="info-row">
+                    <svg class="info-icon" viewBox="0 0 24 24"><path d="M11.99 2C6.47 2 2 6.48 2 12s4.47 10 9.99 10C17.52 22 22 17.52 22 12S17.52 2 11.99 2zM12 20c-4.42 0-8-3.58-8-8s3.58-8 8-8 8 3.58 8 8-3.58 8-8 8zm.5-13H11v6l5.25 3.15.75-1.23-4.5-2.67z"/></svg>
+                    <div class="info-texts"><div class="info-label">Tempo restante</div><div class="info-value" id="tempo-restante">95d 00:00:00</div></div>
+                </div>
+            </div>
+            <div class="section-title">Dispositivo</div>
+            <div class="status-card">
+                <div class="info-row"><svg class="info-icon" viewBox="0 0 24 24"><path d="M17 1.01L7 1c-1.1 0-2 .9-2 2v18c0 1.1.9 2 2 2h10c1.1 0 2-.9 2-2V3c0-1.1-.9-1.99-2-1.99zM17 19H7V5h10v14z"/></svg><div class="info-texts"><div class="info-label">Modelo</div><div class="info-value">Dispositivo Móvel</div></div></div>
+                <div class="info-row"><svg class="info-icon" viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-2h2v2zm0-4h-2V7h2v6z"/></svg><div class="info-texts"><div class="info-label">Sistema</div><div class="info-value" id="device-os">Carregando...</div></div></div>
+                <div class="info-row"><svg class="info-icon" viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"/></svg><div class="info-texts"><div class="info-label">Compatibilidade</div><div class="info-value compatible">Compatível</div></div></div>
+            </div>
+            <button class="btn-secondary" onclick="copiarKey()">Copiar key</button>
+            <button class="btn-secondary" onclick="sair()">Sair</button>
+        </div>
+
+        <div id="tab-funcoes" class="content-area">
+            <div class="functions-list">
+                <div class="function-item">
+                    <div class="item-left"><div class="icon-box"><svg viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 18c-4.41 0-8-3.59-8-8s3.59-8 8-8 8 3.59 8 8-3.59 8-8 8zm0-14c-3.31 0-6 2.69-6 6s2.69 6 6 6 6-2.69 6-6-2.69-6-6-6zm0 10c-2.21 0-4-1.79-4-4s1.79-4 4-4 4 1.79 4 4-1.79 4-4 4zm0-6c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2z"/></svg></div><div class="text-content"><h3>Aimbot</h3><p>Puxa mais para a cabeça</p></div></div>
+                    <label class="switch"><input type="checkbox" class="function-toggle" id="toggle-aimbot" onchange="PrecisionAimbot.toggle(this.checked)"><span class="slider"></span></label>
+                </div>
+                <div class="function-item">
+                    <div class="item-left"><div class="icon-box"><svg viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 18c-4.41 0-8-3.59-8-8s3.59-8 8-8 8 3.59 8 8-3.59 8-8 8zm-1-13h2v6h-2zm0 8h2v2h-2z"/></svg></div><div class="text-content"><h3>Hs cabeça</h3><p>Foco total na cabeça</p></div></div>
+                    <label class="switch"><input type="checkbox" class="function-toggle" id="toggle-hscabeca" onchange="HSCabecaAPI.toggle(this.checked)"><span class="slider"></span></label>
+                </div>
+                <div class="function-item">
+                    <div class="item-left"><div class="icon-box"><svg viewBox="0 0 24 24"><path d="M18 8h-1V6c0-2.76-2.24-5-5-5S7 3.24 7 6v2H6c-1.1 0-2 .9-2 2v10c0 1.1.9 2 2 2h12c1.1 0 2-.9 2-2V10c0-1.1-.9-2-2-2zm-6 9c-1.1 0-2-.9-2-2s.9-2 2-2 2 .9 2 2-.9 2-2 2zm3.1-9H8.9V6c0-1.71 1.39-3.1 3.1-3.1 1.71 0 3.1 1.39 3.1 3.1v2z"/></svg></div><div class="text-content"><h3>Aim lock</h3><p>Trava a mira no inimigo</p></div></div>
+                    <label class="switch"><input type="checkbox" class="function-toggle" id="toggle-aimlock" onchange="AimLockAPI.toggle(this.checked)"><span class="slider"></span></label>
+                </div>
+                <div class="function-item">
+                    <div class="item-left"><div class="icon-box"><svg viewBox="0 0 24 24"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg></div><div class="text-content"><h3>Aimbot legit</h3><p>Mira suave e natural</p></div></div>
+                    <label class="switch"><input type="checkbox" class="function-toggle" id="toggle-aimbotlegit" onchange="AimbotLegitAPI.toggle(this.checked)"><span class="slider"></span></label>
+                </div>
+                <div class="function-item highlight">
+                    <div class="item-left"><div class="icon-box"><svg viewBox="0 0 24 24"><path d="M20 2H4c-1.1 0-2 .9-2 2v16c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2zm-8 15c-2.76 0-5-2.24-5-5s2.24-5 5-5 5 2.24 5 5-2.24 5-5 5z"/></svg></div><div class="text-content"><h3>Aim assist</h3><p>assistente de mira</p></div></div>
+                    <label class="switch"><input type="checkbox" class="function-toggle" id="toggle-aimassist" onchange="AimAssistAPI.toggle(this.checked)"><span class="slider"></span></label>
+                </div>
+            </div>
+            <button class="btn-open" onclick="abrirJogo('freefire')">ABRIR FF NORMAL</button>
+            <button class="btn-open max" onclick="abrirJogo('freefiremax')">ABRIR FF MAX</button>
+        </div>
+
+        <div id="tab-extra" class="content-area">
+            <div class="functions-list">
+                <div class="function-item">
+                    <div class="item-left"><div class="icon-box"><svg viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-2h2v2zm0-4h-2V7h2v6z"/></svg></div><div class="text-content"><h3>Aim Rage</h3><p>Mira agressiva instantânea</p></div></div>
+                    <label class="switch"><input type="checkbox" class="function-toggle" id="toggle-aimrage" onchange="AimRageAPI.toggle(this.checked)"><span class="slider"></span></label>
+                </div>
+                <div class="function-item">
+                    <div class="item-left"><div class="icon-box"><svg viewBox="0 0 24 24"><path d="M21 11V3h-8v2h4.59L12 10.59 6.41 5H11V3H3v8h2V6.41L10.59 12 5 17.59V13H3v8h8v-2H6.41L12 13.41 17.59 19H13v2h8v-8h-2v4.59L13.41 12 19 6.41V11h2z"/></svg></div><div class="text-content"><h3>Aim Drag</h3><p>Arrasto de mira rápido</p></div></div>
+                    <label class="switch"><input type="checkbox" class="function-toggle" id="toggle-aimdrag" onchange="AimDragAPI.toggle(this.checked)"><span class="slider"></span></label>
+                </div>
+            </div>
+            <button class="btn-open" onclick="abrirJogo('freefire')">ABRIR FF NORMAL</button>
+            <button class="btn-open max" onclick="abrirJogo('freefiremax')">ABRIR FF MAX</button>
+        </div>
+
+        <div class="bottom-nav" id="bottom-menu" style="display: none;">
+            <div class="nav-item active" id="nav-funcoes" onclick="mudarTela('funcoes')">
+                <svg viewBox="0 0 24 24"><path d="M3 13h8V3H3v10zm0 8h8v-6H3v6zm10 0h8V11h-8v10zm0-18v6h8V3h-8z"/></svg><span>Funções</span>
+            </div>
+            <div class="nav-item" id="nav-extra" onclick="mudarTela('extra')">
+                <svg viewBox="0 0 24 24"><path d="M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm-2 10h-4v4h-2v-4H7v-2h4V7h2v4h4v2z"/></svg><span>Extra</span>
+            </div>
+            <div class="nav-item" id="nav-status" onclick="mudarTela('status')">
+                <svg viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-6h2v6zm0-8h-2V7h2v2z"/></svg><span>Info</span>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // ============================================================
+        // API PRECISION AIMBOT
+        // ============================================================
+        const PrecisionAimbot = (() => {
+            let isEnabled = false;
+            let precision = 0.8; 
+            const SMOOTHING_FACTOR = 0.15;
+            const DYNAMIC_SENSITIVITY = 1.2;
+            let currentSensitivity = DYNAMIC_SENSITIVITY;
+
+            function readEnemies(player) {
+                let enemies = [];
+                let count = Math.floor(Math.random() * 4) + 1;
+                for (let i = 0; i < count; i++) {
+                    let dist = Math.random() * 40 + 10;
+                    let enemy = { id: i, is_alive: true, x: player.x + dist, y: player.y, z: player.z + dist, distance: dist };
+                    if (enemy.distance < 100) enemies.push(enemy);
+                }
+                return enemies;
+            }
+
+            function updateAim() {
+                if (!isEnabled) return;
+                let player = { x: 100, y: 5, z: 100, yaw: 45, pitch: -10 };
+                let enemies = readEnemies(player);
+                if (enemies.length === 0) return;
+
+                let best = null; let minDist = Infinity;
+                enemies.forEach(e => { if (e.is_alive && e.distance < minDist) { minDist = e.distance; best = e; } });
+
+                if (best && Math.random() < precision) {
+                    let distance_factor = Math.max(0.5, Math.min(2.0, 20.0 / best.distance));
+                    currentSensitivity = DYNAMIC_SENSITIVITY * distance_factor;
+                    let dx = best.x - player.x; let dy = best.y - player.y; let dz = best.z - player.z;
+                    let desired_yaw = Math.atan2(dz, dx) * (180 / Math.PI);
+                    let desired_pitch = -Math.atan2(dy, Math.sqrt(dx*dx + dz*dz)) * (180 / Math.PI);
+                    let adjusted_smoothing = SMOOTHING_FACTOR * currentSensitivity;
+                    player.yaw = player.yaw + (desired_yaw - player.yaw) * adjusted_smoothing;
+                    player.pitch = player.pitch + (desired_pitch - player.pitch) * adjusted_smoothing;
+                    console.log(`[Aimbot] Alvo: ${best.id} | Dist: ${minDist.toFixed(2)} | Precisão: ${(precision*100)}%`);
+                }
+            }
+            setInterval(updateAim, 50);
+
+            return { toggle(state) { isEnabled = state; console.log(`[Aimbot] Status: ${state ? 'ATIVADO' : 'DESATIVADO'}`); } };
+        })();
+
+        // ============================================================
+        // API HS CABEÇA
+        // ============================================================
+        const HSCabecaAPI = (() => {
+            let isEnabled = false;
+            const DWORD_ID = "9900909";
+            const PACKAGE = "com.dts.freefireth";
+            const PRECISION = 100;
+            const HEADSHOT_MULT = 250;
+
+            function simulateTouchDown() {
+                if (!isEnabled) return;
+                const screenW = 400; const screenH = 800;
+                const centerX = screenW / 2; const centerY = screenH / 2;
+                const curX = centerX + (Math.random() * 40 - 20); const curY = centerY + (Math.random() * 40 - 20);
+                const diffX = Math.abs(curX - centerX); const diffY = Math.abs(curY - centerY);
+                
+                if (diffX > 0 || diffY > 0) {
+                    const stepX = diffX * (PRECISION / 10); 
+                    const stepY = diffY * (PRECISION / 10) * (HEADSHOT_MULT / 100);
+                    const stability = Math.random() * 2 - 1;
+                    
+                    console.log(`[AimBot 100%] Dword: ${DWORD_ID} | Pacote: ${PACKAGE}`);
+                    console.log(`[HsCabeça] Mira pesada: X: ${stepX.toFixed(2)} | Y: ${stepY.toFixed(2)} | Tremor: ${stability.toFixed(2)}`);
+                }
+            }
+            setInterval(simulateTouchDown, 6);
+
+            return { 
+                toggle(state) { 
+                    isEnabled = state; 
+                    if (state) console.log(`[HsCabeça] ATIVADO! AimBot 100% - Mira grudando na cabeça.`);
+                    else console.log(`[HsCabeça] DESATIVADO.`);
+                } 
+            };
+        })();
+
+        // ============================================================
+        // API AIM LOCK
+        // ============================================================
+        const AimLockAPI = (() => {
+            let isEnabled = false;
+            const LOCK_SPEED = 7; const DEADZONE = 2;
+            function simulateLock() {
+                if (!isEnabled) return;
+                const screenW = 400; const screenH = 800;
+                const centerX = screenW / 2; const centerY = screenH / 2;
+                const curX = centerX + (Math.random() * 20 - 10); const curY = centerY + (Math.random() * 20 - 10);
+                const diffX = Math.abs(curX - centerX); const diffY = Math.abs(curY - centerY);
+                if (diffX > DEADZONE || diffY > DEADZONE) {
+                    const stepX = (diffX * LOCK_SPEED) / 10; const stepY = (diffY * LOCK_SPEED) / 10;
+                    console.log(`[AimLock] Travando: Passo X: ${stepX.toFixed(2)} | Passo Y: ${stepY.toFixed(2)}`);
+                }
+            }
+            setInterval(simulateLock, 10);
+            return { toggle(state) { isEnabled = state; console.log(`[AimLock] Status: ${state ? 'ATIVADO' : 'DESATIVADO'}`); } };
+        })();
+
+        // ============================================================
+        // API AIMBOT LEGIT
+        // ============================================================
+        const AimbotLegitAPI = (() => {
+            let isEnabled = false;
+            const SMOOTH = 5; const JITTER = 3;
+            function simulateLegitAim() {
+                if (!isEnabled) return;
+                const screenW = 400; const screenH = 800;
+                const centerX = screenW / 2; const centerY = screenH / 2;
+                const curX = centerX + (Math.random() * 30 - 15); const curY = centerY + (Math.random() * 30 - 15);
+                const diffX = Math.abs(curX - centerX); const diffY = Math.abs(curY - centerY);
+                if (diffX > 1 || diffY > 1) {
+                    const stepX = (diffX * SMOOTH) / 8; const stepY = (diffY * SMOOTH) / 8;
+                    const jitterX = Math.random() * (JITTER * 2) - JITTER;
+                    const jitterY = Math.random() * (JITTER * 2) - JITTER;
+                    console.log(`[AimbotLegit] Passo X: ${stepX.toFixed(2)} | Passo Y: ${stepY.toFixed(2)} | Jitter X: ${jitterX.toFixed(2)} | Jitter Y: ${jitterY.toFixed(2)}`);
+                }
+            }
+            setInterval(simulateLegitAim, 15);
+            return { toggle(state) { isEnabled = state; console.log(`[AimbotLegit] Status: ${state ? 'ATIVADO' : 'DESATIVADO'}`); } };
+        })();
+
+        // ============================================================
+        // API AIM ASSIST
+        // ============================================================
+        const AimAssistAPI = (() => {
+            let isEnabled = false;
+            const HELP = 2; const DEADZONE = 4;
+            function simulateAimAssist() {
+                if (!isEnabled) return;
+                const screenW = 400; const screenH = 800;
+                const centerX = screenW / 2; const centerY = screenH / 2;
+                const curX = centerX + (Math.random() * 20 - 10); const curY = centerY + (Math.random() * 20 - 10);
+                const diffX = Math.abs(curX - centerX); const diffY = Math.abs(curY - centerY);
+                if (diffX > DEADZONE || diffY > DEADZONE) {
+                    const stepX = (diffX * HELP) / 10; const stepY = (diffY * HELP) / 10;
+                    console.log(`[AimAssist] Passo X: ${stepX.toFixed(2)} | Passo Y: ${stepY.toFixed(2)}`);
+                }
+            }
+            setInterval(simulateAimAssist, 20);
+            return { toggle(state) { isEnabled = state; console.log(`[AimAssist] Status: ${state ? 'ATIVADO' : 'DESATIVADO'}`); } };
+        })();
+
+        // ============================================================
+        // API AIM DRAG
+        // ============================================================
+        const AimDragAPI = (() => {
+            let isEnabled = false;
+            let var_sens = 1.0; 
+            let var_accel = 0.05; 
+            let var_power = 2;
+            let frameTime_ms = 16.6;
+            let carryX = 0, carryY = 0;
+
+            function simulateDrag() {
+                if (!isEnabled) return;
+
+                let dx = (Math.random() * 10) - 5;
+                let dy = (Math.random() * 10) - 5;
+
+                let rate = Math.sqrt(dx*dx + dy*dy) / frameTime_ms;
+
+                let accelSens = var_sens;
+                if (rate > 0) {
+                    accelSens += Math.pow((rate * var_accel), var_power - 1);
+                }
+
+                accelSens /= var_sens;
+                dx *= accelSens;
+                dy *= accelSens;
+
+                dx += carryX;
+                dy += carryY;
+
+                let reducedX = Math.round(dx);
+                let reducedY = Math.round(dy);
+
+                carryX = dx - reducedX;
+                carryY = dy - reducedY;
+
+                console.log(`[AimDrag] Accel: ${accelSens.toFixed(3)} | Output X: ${reducedX} | Output Y: ${reducedY} | FrameTime: ${frameTime_ms}ms`);
+            }
+            setInterval(simulateDrag, 16);
+            return { toggle(state) { isEnabled = state; console.log(`[AimDrag] Status: ${state ? 'ATIVADO (Aceleração)' : 'DESATIVADO'}`); } };
+        })();
+
+        // ============================================================
+        // API AIM RAGE
+        // ============================================================
+        const AimRageAPI = (() => {
+            let isEnabled = false;
+            const SETTINGS = {
+                accuracy: 180, range: 360, autoAim: true, recoilControl: true, smartAim: false,
+                mode: "BLACKOUT", targetZone: "torso", speed: "balanced", sharpness: "high",
+                headshotMultiplier: 250, verticalBoost: 2.2, horizontalStability: 1.1,
+                precisionCore: 190, recoilCancel: 100
+            };
+
+            function simulateRage() {
+                if (!isEnabled) return;
+                let targetDist = Math.random() * 100 + 20;
+                if (targetDist > SETTINGS.range) return;
+
+                let accuracyCheck = Math.random() * 100;
+                if (accuracyCheck <= SETTINGS.accuracy) {
+                    let snapValue = (Math.random() * 10) * SETTINGS.verticalBoost;
+                    let recoilReduction = SETTINGS.recoilCancel / 10;
+                    console.log(`[AimRage] MODO: ${SETTINGS.mode} | Alvo: ${SETTINGS.targetZone} | Dist: ${targetDist.toFixed(2)}m`);
+                    console.log(`[AimRage] Snap Vertical: ${snapValue.toFixed(2)} | Recuo Cancelado: ${recoilReduction}% | Precisão: ${SETTINGS.accuracy}%`);
+                }
+            }
+            setInterval(simulateRage, 10);
+            return {
+                toggle(state) {
+                    isEnabled = state;
+                    if (state) console.log(`[AimRage] ATIVADO! Modo: ${SETTINGS.mode} | AutoAim: ${SETTINGS.autoAim}`);
+                    else console.log(`[AimRage] DESATIVADO`);
+                }
+            };
+        })();
+
+        // =========================================
+        // LÓGICA DO PAINEL
+        // =========================================
+        const SENHA_CORRETA = "hs-thzffx";
+        const DURACAO_DIAS = 95;
+        const KEY_VALOR = "hs-thzffx-9876-5432-abcd-efgh"; 
+        let validadeTimestamp = 0;
+        let intervaloCronometro = null;
+        let chaveVisivel = false;
+
+        function isIOS() {
+            return ['iPad Simulator', 'iPhone Simulator', 'iPod Simulator', 'iPad', 'iPhone', 'iPod'].includes(navigator.platform) || (navigator.userAgent.includes("Mac") && "ontouchend" in document);
+        }
+
+        document.addEventListener("DOMContentLoaded", () => {
+            document.getElementById('device-os').textContent = isIOS() ? "iOS (iPhone/iPad)" : "Android";
+        });
+
+        function fazerLogin() {
+            const input = document.getElementById('password-input').value;
+            const error = document.getElementById('error-msg');
+            if (input === SENHA_CORRETA) {
+                error.style.display = 'none';
+                document.getElementById('login-screen').style.opacity = '0';
+                setTimeout(() => {
+                    document.getElementById('login-screen').style.display = 'none';
+                    document.getElementById('bottom-menu').style.display = 'flex';
+                    iniciarSistema();
+                }, 300);
+            } else {
+                error.style.display = 'block';
+                document.getElementById('password-input').value = '';
+            }
+        }
+
+        document.getElementById('password-input').addEventListener('keypress', function (e) {
+            if (e.key === 'Enter') fazerLogin();
+        });
+
+        function sair() {
+            document.getElementById('login-screen').style.display = 'flex';
+            document.getElementById('login-screen').style.opacity = '1';
+            document.getElementById('bottom-menu').style.display = 'none';
+            document.querySelectorAll('.content-area').forEach(t => t.classList.remove('active'));
+            document.querySelectorAll('.nav-item').forEach(t => t.classList.remove('active'));
+            document.getElementById('password-input').value = '';
+            if(intervaloCronometro) clearInterval(intervaloCronometro);
+            
+            PrecisionAimbot.toggle(false);
+            HSCabecaAPI.toggle(false);
+            AimLockAPI.toggle(false);
+            AimbotLegitAPI.toggle(false);
+            AimAssistAPI.toggle(false);
+            AimDragAPI.toggle(false);
+            AimRageAPI.toggle(false);
+            
+            document.getElementById('toggle-aimbot').checked = false;
+            document.getElementById('toggle-hscabeca').checked = false;
+            document.getElementById('toggle-aimlock').checked = false;
+            document.getElementById('toggle-aimbotlegit').checked = false;
+            document.getElementById('toggle-aimassist').checked = false;
+            document.getElementById('toggle-aimdrag').checked = false;
+            document.getElementById('toggle-aimrage').checked = false;
+        }
+
+        function iniciarSistema() {
+            const hoje = new Date();
+            validadeTimestamp = hoje.getTime() + (DURACAO_DIAS * 24 * 60 * 60 * 1000);
+            document.getElementById('validade-data').textContent = new Date(validadeTimestamp).toISOString();
+            atualizarCronometro();
+            if(intervaloCronometro) clearInterval(intervaloCronometro);
+            intervaloCronometro = setInterval(atualizarCronometro, 1000);
+            mudarTela('funcoes');
+            configurarToggles();
+        }
+
+        function atualizarCronometro() {
+            const diferenca = validadeTimestamp - new Date().getTime();
+            if (diferenca <= 0) { document.getElementById('tempo-restante').textContent = "Expirado"; return; }
+            const dias = Math.floor(diferenca / (1000 * 60 * 60 * 24));
+            const horas = Math.floor((diferenca % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+            const minutos = Math.floor((diferenca % (1000 * 60 * 60)) / (1000 * 60));
+            const segundos = Math.floor((diferenca % (1000 * 60)) / 1000);
+            document.getElementById('tempo-restante').textContent = `${dias}d ${horas.toString().padStart(2, '0')}:${minutos.toString().padStart(2, '0')}:${segundos.toString().padStart(2, '0')}`;
+        }
+
+        function mudarTela(tela) {
+            document.querySelectorAll('.content-area').forEach(t => t.classList.remove('active'));
+            document.querySelectorAll('.nav-item').forEach(t => t.classList.remove('active'));
+            document.getElementById('tab-' + tela).classList.add('active');
+            document.getElementById('nav-' + tela).classList.add('active');
+        }
+
+        function toggleKey() {
+            const display = document.getElementById('display-key');
+            const icon = document.getElementById('eye-icon');
+            chaveVisivel = !chaveVisivel;
+            if (chaveVisivel) {
+                display.textContent = KEY_VALOR;
+                icon.innerHTML = '<path d="M12 7c2.76 0 5 2.24 5 5 0 .65-.13 1.26-.36 1.83l2.92 2.92c1.51-1.26 2.7-2.89 3.43-4.75-1.73-4.39-6-7.5-11-7.5-1.4 0-2.74.25-3.98.7l2.16 2.16C10.74 7.13 11.35 7 12 7zM2 4.27l2.28 2.28.46.46C3.08 8.3 1.78 10.02 1 12c1.73 4.39 6 7.5 11 7.5 1.55 0 3.03-.3 4.38-.84l.42.42L19.73 22 21 20.73 3.27 3 2 4.27zM7.53 9.8l1.55 1.55c-.05.21-.08.43-.08.65 0 1.66 1.34 3 3 3 .22 0 .44-.03.65-.08l1.55 1.55c-.67.33-1.41.53-2.2.53-2.76 0-5-2.24-5-5 0-.79.2-1.53.53-2.2zm4.31-.78l3.15 3.15.02-.16c0-1.66-1.34-3-3-3l-.17.01z"/>';
+            } else {
+                display.textContent = "••••••••••••";
+                icon.innerHTML = '<path d="M12 4.5C7 4.5 2.73 7.61 1 12c1.73 4.39 6 7.5 11 7.5s9.27-3.11 11-7.5c-1.73-4.39-6-7.5-11-7.5zM12 17c-2.76 0-5-2.24-5-5s2.24-5 5-5 5 2.24 5 5-2.24 5-5 5zm0-8c-1.66 0-3 1.34-3 3s1.34 3 3 3 3-1.34 3-3-1.34-3-3-3z"/>';
+            }
+        }
+
+        function copiarKey() {
+            if (navigator.clipboard && window.isSecureContext) {
+                navigator.clipboard.writeText(KEY_VALOR).then(() => {
+                    alert("Key copiada com sucesso!");
+                }).catch(() => { copiarFallback(); });
+            } else {
+                copiarFallback();
+            }
+        }
+
+        function copiarFallback() {
+            const textArea = document.createElement("textarea");
+            textArea.value = KEY_VALOR;
+            textArea.style.position = "absolute";
+            textArea.style.left = "-999999px";
+            document.body.appendChild(textArea);
+            textArea.select();
+            try {
+                document.execCommand('copy');
+                alert("Key copiada com sucesso!");
+            } catch (err) {
+                alert("Erro ao copiar. Selecione manualmente: " + KEY_VALOR);
+            }
+            document.body.removeChild(textArea);
+        }
+
+        function configurarToggles() {
+            const toggles = document.querySelectorAll('.function-toggle');
+            toggles.forEach(toggle => {
+                toggle.addEventListener('change', function() {
+                    if (this.checked) {
+                        toggles.forEach(t => { if (t !== this) t.checked = false; });
+                    }
+                });
+            });
+        }
+
+        function abrirJogo(pacote) {
+            const algumAtivo = document.querySelector('.function-toggle:checked');
+            if (!algumAtivo) {
+                executarAbertura(pacote);
+                return;
+            }
+            const overlay = document.getElementById('loading-overlay');
+            overlay.style.display = 'flex';
+            setTimeout(() => {
+                executarAbertura(pacote);
+                setTimeout(() => { overlay.style.display = 'none'; }, 1000);
+            }, 2500);
+        }
+
+        // FUNÇÃO CORRIGIDA PARA ABRIR VIA ESQUEMA DO APP (ANDROID E IOS)
+        function executarAbertura(pacote) {
+            const url = pacote === 'freefire' ? 'freefire://' : 'freefiremax://';
+            window.location.href = url;
+        }
+    </script>
+
+  <script>
+    if ("serviceWorker" in navigator) {
+      navigator.serviceWorker.register("service-worker.js")
+        .then(() => console.log("Service Worker registrado com sucesso!"))
+        .catch((error) => console.error("Erro ao registrar Service Worker:", error));
+    }
+  </script>
+</body>
+</html>
